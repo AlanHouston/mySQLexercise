@@ -1,8 +1,19 @@
 const express = require('express');
 const mysql = require('mysql');
 const app = express();
-const dotenv = require("dotenv");
+const dotenv = require('dotenv');
+const morgan = require('morgan')
 dotenv.config();
+
+const bodyParser = require('body-parser');
+
+app.use(bodyParser.urlencoded({extended: false}));
+// looks at request, can get data from the form
+
+app.use(express.static('./public'));
+
+app.use(morgan('short'));
+//can use different string to get more exlpaination of bugs or whatever
 
 const connection = mysql.createConnection({
     host: process.env.testHost,
@@ -19,6 +30,7 @@ connection.connect(function(error) {
     }
 });
 
+
 app.get('/', (req,res) => {
     res.send('Try using a pathname!');
 });
@@ -28,11 +40,17 @@ app.get('/crew/:id', (req,res) => {
         const querystring = 'SELECT * FROM sampletable WHERE id = ?';
         connection.query(querystring, [userId], (err, rows, fields) => {
             if(!!err) {
-                console.log(err);
-                res.end();
-            } else {
-                res.json(rows);
+                console.log('Failed to query: ' + err);
+                res.sendStatus(500);
+                // res.end();
+                return
             }
+
+            const peeps = rows.map((row) => {
+                return {peep: row.name}
+            })
+
+            res.json(peeps);
         });
 })
 
@@ -64,5 +82,27 @@ app.get('/crew', function(req, res) {
         }
     });
 });
+
+app.post('/user_create', (req,res) => {
+    const firstName = req.body.create_first_name;
+    const lastName = req.body.create_last_name;
+    const salary = req.body.create_salary;
+
+    const queryString = 'INSERT INTO sampletable (first_name, last_name, salary) VALUES (?, ?, ?)'
+    // thse are the column namse from the DB
+
+    connection.query(queryString, [firstName, lastName, salary], (err, results, fields) => {
+        if (!!err) {
+            console.log('Failed to insert user ' + err);
+            res.sendStatus(500);
+            return
+        }
+
+        console.log('Inserted a new user with id: ' + results.insertId);
+        res.end
+    });
+
+    res.end();
+})
 
 app.listen(3306)
