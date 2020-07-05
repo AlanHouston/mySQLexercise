@@ -122,7 +122,7 @@ router.post('/create_account', (req,res) => {
             res.sendStatus(500);
             return
 
-        } else if (results.length > 0) {
+        } else if (results.length) {
             console.log('email already exists');
         } else {
             let hash = bcrypt.hashSync(password, 8);
@@ -147,9 +147,6 @@ router.get('/', (req,res) => {
     res.send('Try using a pathname!');
 });
 
-router.get('/secretInformation', (req,res) => {
-    res.send('you have been authenticated bitch');
-});
 
 // this was from when getCOnnection returned the mysql.createConnection obj with the DB object
 

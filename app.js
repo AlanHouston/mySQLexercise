@@ -16,13 +16,13 @@ app.use(morgan('short'));
 
 const router = require('./routes/user.js');
 
-app.use((req, res, next) => {
-    if(true) {
-        next();
-    } else {
-        res.send('unauthorized');
-    }
-})
+// app.use((req, res, next) => {
+//     if(true) {
+//         next();
+//     } else {
+//         res.send('unauthorized');
+//     }
+// })
 
 app.get('/secretInformation', (req,res) => {
     res.send('you have been authenticated bitch');
