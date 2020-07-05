@@ -2,6 +2,7 @@
 const express = require('express');
 const mysql = require('mysql');
 const router = express.Router();
+const bcrypt = require('bcryptjs');
 
 const pool = mysql.createPool({
     connectionLimit: 10,
@@ -99,14 +100,55 @@ router.post('/user_create', (req,res) => {
         }
 
         console.log('Inserted a new user with id: ' + results.insertId);
-        res.end
+        res.end();
     });
 
     res.end();
 })
 
+router.post('/create_account', (req,res) => {
+    const connection = getConnection();
+    const email = req.body.create_email;
+    const password = req.body.create_password;
+
+    // const queryString = 'SELECT * FROM user_accounts WHERE email = ?';
+
+    const queryString = 'SELECT * FROM user_accounts WHERE email = ?';
+
+    connection.query(queryString, [email], (err, results, fields) => {
+        console.log(results);
+        if (!!err) {
+            console.log('Failed to insert user ' + err);
+            res.sendStatus(500);
+            return
+
+        } else if (results.length > 0) {
+            console.log('email already exists');
+        } else {
+            let hash = bcrypt.hashSync(password, 8);
+
+            const createAccountString = 'INSERT INTO user_accounts (email, password) VALUES (?, ?)';
+            connection.query(createAccountString, [email, hash], (err, results, fields) => {
+                if (!!err) {
+                    console.log('Failed to insert user ' + err);
+                    res.sendStatus(500);
+                    return
+                }
+        
+                console.log('Inserted a new account with id: ' + results.insertId + ' and email: ' + email);
+
+                res.end();
+            })
+        }
+    })
+})
+
 router.get('/', (req,res) => {
     res.send('Try using a pathname!');
+});
+
+router.get('/secretInformation', (req,res) => {
+    res.send('you have been authenticated bitch');
 });
 
 // this was from when getCOnnection returned the mysql.createConnection obj with the DB object
